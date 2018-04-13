@@ -1,28 +1,23 @@
 # port
 
-
 ## glossaries
 
 ### portdir
 
 ### portname
 
-
 ### pseudo-portname
-
 
 ### port-expressions
 
 ### port-url
 
-
 ### action
-
 
 ### targets
 
-target  | description
---- | ---
+target          | description
+----------------|------------------------
 activate        | activate installed port
 archive         | create an archive of a port
 archivefetch    | fetch archive of given ports if available

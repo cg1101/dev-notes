@@ -3,6 +3,6 @@ A collection of miscellaneous notes
 
 ## Contents
 
-- [MacPort](doc/marcport.md)
-- [Markdown](markdown.md)
-- [Using netstat](netstat.md)
+- [MacPort](doc/macport.md)
+- [Markdown](doc/markdown.md)
+- [Using netstat](doc/netstat.md)

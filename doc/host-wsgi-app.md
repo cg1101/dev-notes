@@ -1,0 +1,159 @@
+Host a Python WSGI app
+======================
+
+This is a quick guide that shows the basic steps about hosting a WSGI application on an Apache Web server.
+
+In this guide, the target machine is running macOS. The package manager is [MacPort](https://www.macports.org/). The database is [PostgreSQL](https://www.postgresql.org/).
+
+Install MacPort
+---------------
+Please follow instruction in [this page](https://www.macports.org/install.php) to install MacPort.
+
+Install Postgresql
+------------------
+With port is installed, we can then use port to install postgresql. First, let's check for available releases. 
+
+```
+port list postgresql*
+```
+
+This may return a list of version, e.g.:
+```
+postgresql-jdbc                @9.1-901        java/postgresql-jdbc
+postgresql-unaccent            @0.1            databases/postgresql-unaccent
+postgresql7                    @7.4.24         databases/postgresql7
+postgresql10                   @10.3           databases/postgresql10
+postgresql10-doc               @10.3           databases/postgresql10-doc
+postgresql10-server            @10.3           databases/postgresql10-server
+postgresql80                   @8.0.26         databases/postgresql80
+postgresql80-doc               @8.0.26         databases/postgresql80-doc
+postgresql80-server            @8.0.26         databases/postgresql80-server
+postgresql81                   @8.1.23         databases/postgresql81
+postgresql81-doc               @8.1.23         databases/postgresql81-doc
+postgresql81-server            @8.1.23         databases/postgresql81-server
+postgresql82                   @8.2.23         databases/postgresql82
+postgresql82-doc               @8.2.23         databases/postgresql82-doc
+postgresql82-server            @8.2.23         databases/postgresql82-server
+postgresql83                   @8.3.23         databases/postgresql83
+postgresql83-doc               @8.3.23         databases/postgresql83-doc
+postgresql83-server            @8.3.23         databases/postgresql83-server
+postgresql84                   @8.4.22         databases/postgresql84
+postgresql84-doc               @8.4.22         databases/postgresql84-doc
+postgresql84-server            @8.4.22         databases/postgresql84-server
+postgresql90                   @9.0.23         databases/postgresql90
+postgresql90-doc               @9.0.23         databases/postgresql90-doc
+postgresql90-server            @9.0.23         databases/postgresql90-server
+postgresql91                   @9.1.24         databases/postgresql91
+postgresql91-doc               @9.1.24         databases/postgresql91-doc
+postgresql91-server            @9.1.24         databases/postgresql91-server
+postgresql92                   @9.2.24         databases/postgresql92
+postgresql92-doc               @9.2.24         databases/postgresql92-doc
+postgresql92-server            @9.2.24         databases/postgresql92-server
+postgresql93                   @9.3.22         databases/postgresql93
+postgresql93-doc               @9.3.22         databases/postgresql93-doc
+postgresql93-server            @9.3.22         databases/postgresql93-server
+postgresql94                   @9.4.17         databases/postgresql94
+postgresql94-doc               @9.4.17         databases/postgresql94-doc
+postgresql94-server            @9.4.17         databases/postgresql94-server
+postgresql95                   @9.5.12         databases/postgresql95
+postgresql95-doc               @9.5.12         databases/postgresql95-doc
+postgresql95-server            @9.5.12         databases/postgresql95-server
+postgresql96                   @9.6.8          databases/postgresql96
+postgresql96-doc               @9.6.8          databases/postgresql96-doc
+postgresql96-server            @9.6.8          databases/postgresql96-server
+postgresql_autodoc             @1.41           databases/postgresql_autodoc
+postgresql_select              @0.3            databases/postgresql_select
+```
+
+We can choose the version we want, e.g. Postgresql 9.6, then we run:
+```
+sudo port install postgresql96-server
+```
+
+The initialization should be taken care of by installer. However, in case you need to initialize database yourself, you can check the notes of this port:
+```
+port notes postgresql96-sever
+```
+This will give you the instructions.
+
+Once database is created, you may try this:
+```
+sudo -u postgres psql -l
+```
+It should return something like this:
+```
+                                      List of databases
+        Name        |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges   
+--------------------+----------+----------+-------------+-------------+-----------------------
+ postgres           | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ template0          | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+                    |          |          |             |             | postgres=CTc/postgres
+ template1          | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+                    |          |          |             |             | postgres=CTc/postgres
+
+```
+
+Everything seems okay. For convenience, you may want to create a user for yourself.
+```
+sudo -u postgres createuser <your_login>
+```
+
+Give proper privileges to yourself. Then verify you can login. You may need to update postgresql's configuration. First find out where it is saved:
+```
+echo "SHOW hba_file" | psql postgres
+```
+And we get something like this:
+```
+                       hba_file                       
+------------------------------------------------------
+ /opt/local/var/db/postgresql96/defaultdb/pg_hba.conf
+(1 row)
+```
+Update this file if needed. For more information, check [Postgresql's documentation](https://www.postgresql.org/docs/9.6/static/client-authentication.html)
+
+
+Install Apache2
+---------------
+First, let's check available releases:
+```
+port list apache*
+```
+
+Let's install Apache2.4
+```
+sudo port install apache2
+```
+
+Apache server should be started automatically, in case you need to start it manually, you can run:
+```
+port load apache2
+```
+This is actually a shortcut to macOS's ```launchctl``` command.
+
+Install mod_wsgi
+----------------
+First, search for that port:
+```
+port search mod_wsgi
+```
+It returns:
+```
+mod_wsgi @4.5.20 (www, python)
+    Python WSGI adapter
+    module for Apache.
+```
+The we install it:
+```
+sudo port mod_wsgi
+```
+
+Next, we need to update apache2's configuration file to load this module. First, let's find out where is apache2's configuration file.
+```
+apachectl -V
+```
+From output, we can tell configuration is ```/opt/local/etc/apache2/httpd.conf```
+
+Edit that file and added following line to it
+```apache
+LoadModule wsgi_module lib/apache2/modules/mod_wsgi.so
+```

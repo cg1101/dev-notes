@@ -11,7 +11,7 @@ Please follow instruction in [this page](https://www.macports.org/install.php) t
 
 Install Postgresql
 ------------------
-With port is installed, we can then use port to install postgresql. First, let's check for available releases. 
+After port is successfully installed, we can then use it to install postgresql. First, let's check for available releases. 
 
 ```
 port list postgresql*
@@ -157,3 +157,74 @@ Edit that file and added following line to it
 ```apache
 LoadModule wsgi_module lib/apache2/modules/mod_wsgi.so
 ```
+
+Next, let's try it actually works. Create a sub directory inside the folder where apache2's configuration file ```httpd.conf``` is saved. Let's call it ```my-sites```.
+```
+mkdir my-sites
+```
+The create file inside this folder, let's call it ```100-test.conf```. Add following content to it:
+```apache
+Listen 8088
+
+<VirtualHost *:8088>
+
+    <Directory /opt/python/sample-app/>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    WSGIScriptAlias / /opt/python/sample-app/application.py
+    SetEnv MYTEST abc
+</VirtualHost>
+```
+
+Then create the python file as ```/opt/python/sample-app/application.py```, and add following content to it:
+```python
+import os
+import sys
+
+def application(environ, start_response):
+    status = '200 OK'
+    buf = []
+    for k in sorted(environ.keys()):
+        if isinstance(environ[k], basestring):
+            buf.append('{}\t{}\n'.format(k, environ[k]))
+    buf.append('-' * 80)
+    for k in sorted(os.environ.keys()):
+        buf.append('{}\t{}\n'.format(k, os.environ[k]))
+    buf.append('-' * 80)
+
+    buf.append('{}\t{}\n'.format('sys.argv[0]', sys.argv[0]))
+
+    for i, p in enumerate(sys.path):
+        buf.append('{}\t{}\n'.format('path %d' % i, p))
+
+    buf.append('{}\t{}\n'.format('os.__file__', os.__file__))
+
+    try:
+        import flask
+        buf.append('{}\t{}\n'.format('flask.__file__', flask.__file__))
+    except Exception, e:
+        buf.append('{}\t{}\n'.format('import error', e))
+
+    output = '\n'.join(buf)
+
+    response_headers = [('Content-type', 'text/plain'),
+                    ('Content-Length', str(len(output)))]
+    start_response(status, response_headers)
+
+    return [output]
+```
+
+Next, let's modify ```httpd.conf``` to include configuration file for our sample app.
+```
+Include etc/apache2/my-sites/100-test.conf
+```
+
+We need to reload apache2 now, run:
+```
+sudo apachectl graceful
+```
+
+Now open a browser and go to ```localhost:8088```, you should be able to see our sample app is working.

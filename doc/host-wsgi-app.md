@@ -267,3 +267,26 @@ Reload sample-app. You should be able to see environment variables passed in.
 ### Change Database Entity ownerships
 One last thing, if your app uses database, you have to make sure the connected user of Apache has enough privileges to do database operations. You can find that is the user log used by apache either by checking its configuration or check sample app output. You can then create a database and grant user proper privileges. 
 
+### Using https
+Create following files and then include them in your application's configuration. 
+- ```wsgi.conf```
+```apache
+WSGIPAssAuthorization On
+```
+
+- ```ssl_rewrite.conf```
+```apache
+RewriteEngine On
+RewriteCond %{SERVER_PORT} !^443$
+RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R=301,L]
+```
+
+- ```ssl.conf```
+```apache
+SSLEngine on
+SSLCertificateFile /path/to/my-cert/server.crt
+SSLCertificateKeyFile /path/to/my-cert/server.key
+SSLCACertificateFile /path/to/my-cert/intermediate.crt
+```
+
+Finally check your apache's configuration to make sure it will listen to port 443. 

@@ -158,7 +158,9 @@ Edit that file and added following line to it
 LoadModule wsgi_module lib/apache2/modules/mod_wsgi.so
 ```
 
-Next, let's try it actually works. Create a sub directory inside the folder where apache2's configuration file ```httpd.conf``` is saved. Let's call it ```my-sites```.
+First WSGI sample app
+---------------------
+Next, let's try mod_wsgi actually works. Create a sub directory inside the folder where apache2's configuration file ```httpd.conf``` is saved. Let's call it ```my-sites```.
 ```
 mkdir my-sites
 ```
@@ -228,3 +230,40 @@ sudo apachectl graceful
 ```
 
 Now open a browser and go to ```localhost:8088```, you should be able to see our sample app is working.
+
+Deploy your real app
+--------------------
+Our sample app is up and running. Let's see what we need to deploy a real app. A real app may need to use 3rd party libraries and often need to connect to database. We don't want to save configuration in a file but want to pass such information to our app as environment variables.  
+
+### Create a new configuration for real app
+Let's create it as ```/opt/local/etc/apache2/my-sites/900-real-app.conf```. The content should be similar to the sample one. Just make sure the file path is correct.
+
+
+### Python library search path
+Suppose your packages are not saved in the default search path of python, you can tell mod_wsgi where to find them by adding follow line to your configuration file:
+```
+WSGIPythonPath /path/to/my-app/venv/lib/python2.7/site-packages/
+```
+Please note directive ```WSGIPythonPath``` uses server config context, so you can't added it inside a ```VirtualHost```, you must add it to the root level. (Perhaps you want to add it directly into ```httpd.conf```)
+
+```SetEnv``` can be used to pass environment variables into app. However, your app needs to copy them from ```environ``` into ```os.environ```. ([see more details in]()). An alternative is to use ```envvars``` which is in the same location as apache binaries. To find it, run:
+ ```
+ port notes apache2
+ ```
+ We can see it is in: ```/opt/local/sbin/```. Edit that file and add following line:
+ ```
+ source /path/to/my-app/env
+
+ ```
+
+Then you can define that file and add all your environment variables to be passed in that file. Once this is done, you must restart apache server. Reloading won't work.
+```
+apachectl stop
+apachectl start
+```
+
+Reload sample-app. You should be able to see environment variables passed in.
+
+### Change Database Entity ownerships
+One last thing, if your app uses database, you have to make sure the connected user of Apache has enough privileges to do database operations. You can find that is the user log used by apache either by checking its configuration or check sample app output. You can then create a database and grant user proper privileges. 
+

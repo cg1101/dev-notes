@@ -88,3 +88,182 @@ usage           | display a condensed usage summary
 variants        | list the variants available for port
 version         | display release number of installed macport infrastructure
 work            | displays the path to the work directory of given port
+
+## examples
+
+* search for a particular port
+
+  ```sh
+  sudo port search postgresql12-server
+  ```
+
+* display port information
+
+  ```sh
+  sudo port info postgresql12-server
+  ```
+
+* display post installation notes of a port
+
+  ```sh
+  sudo port notes postgresql12-server
+  ```
+
+* check if a port has variants
+
+  ```sh
+  sudo port variants postgresql12-server
+  ```
+
+* show dependencies or reverse dependencies
+
+  ```sh
+  sudo port deps postgresql12-server
+  sudo port rdeps postgresql12-server
+  ```
+
+* install/uninstall port
+
+  ```sh
+  sudo port install postgresql12
+  sudo port uninstall postgresql12-server
+  ```
+
+* reclaim disk space used by port
+
+  ```sh
+  sudo port reclaim
+  ```
+
+* select a version among a given group
+
+  ```sh
+  sudo port select --summary
+  sudo port select --list pip3
+  sudo port select pip3 python38
+  ```
+
+* activate/deactivate port
+
+  ```sh
+  sudo port activate bzip2
+  sudo port deactivate bzip2
+  ```
+
+* set/clear requested flag
+
+  ```sh
+  sudo port list unrequested # list unrequested ports
+  sudo port installed requested
+  sudo port setrequested pip_select
+  sudo port unsetrequested pip_select
+  sudo port setunrequested pip_select
+  ```
+
+* list installed ports
+
+  ```sh
+  sudo port installed
+  sudo port installed active
+  sudo port installed unrequested
+  ```
+
+* show installed port location
+
+  ```sh
+  sudo port location postgresql12-server
+  ```
+
+* list port contents, search for port by checking contents
+
+  ```sh
+  sudo port contents postgresql12-server
+  sudo port provides /opt/local/bin/gls
+  ```
+
+* perform a sync operation on the ports tree of a MacPorts installation
+
+  ```sh
+  sudo port -d sync # generate debug output
+  ```
+
+* update port, clean
+
+  ```sh
+  sudo port outdated
+  sudo port upgrade vim
+  sudo port rev-upgrade openssl
+  sudo port clean --logs vim
+  sudo port selfupdate
+  ```
+
+* parses and shows log files for port
+
+  ```sh
+  sudo port log --phase configure vim
+  ```
+
+* list logfile of a port
+
+  ```sh
+  sudo port logfile postgresql12-server
+  ```
+
+* misc commands
+
+  ```sh
+  sudo port echo
+  sudo port list
+  sudo port mirror
+  sudo port version
+  ```
+
+* port daemon related
+
+  ```sh
+  sudo port load postgresql12-server
+  sudo port reload postgresql12-server
+  sudo port unload postgresql12-server
+  ```
+
+* Help related
+
+  ```sh
+  sudo port gohome vim
+  sudo port help
+  sudo port usage
+  ```
+
+## Example, install 'postgresql` in the system
+
+First, list ports to see if postgresql has been installed.
+
+```sh
+sudo port installed
+sudo port installed requested
+```
+
+If not found, we install one.
+
+```sh
+sudo port search postgresql
+sudo port install postgresql12
+```
+
+Follow the instruction in the notes to initialize the databases:
+
+```sh
+sudo port notes postgresql12-server
+```
+
+We can then select the version by running:
+
+```sh
+sudo port select postgresql postgresql12
+```
+
+Now we can run `psql` to create user, databases, etc.
+
+```sh
+sudo -u postgres psql
+```
